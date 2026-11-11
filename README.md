@@ -65,6 +65,25 @@ JSON puro, sem login obrigatório. A interface fala com a API pelo proxy
 | PATCH | `/api/cards/:id` | `{card}` |
 | DELETE | `/api/cards/:id` | `{ok:true}` |
 
+### Atendimento (tickets)
+
+Cada ticket é uma conversa. A tela fica em `/atendimento` e atualiza a conversa
+aberta a cada 5 segundos, então respostas gravadas pela API aparecem sozinhas.
+
+| Método | Rota | Corpo | Resposta |
+|---|---|---|---|
+| GET | `/api/tickets` | | `{tickets:[{id,title,status,createdAt,updatedAt,lastMessage}]}` |
+| POST | `/api/tickets` | `{content, title?}` | `{ticket, messages}` (título sai da 1ª linha) |
+| GET | `/api/tickets/:id` | | `{ticket, messages:[{id,author,authorName,content,createdAt}]}` |
+| PATCH | `/api/tickets/:id` | `{title?, status?}` | `{ticket}` |
+| DELETE | `/api/tickets/:id` | | `{ok:true}` |
+| POST | `/api/tickets/:id/messages` | `{content, author?, authorName?}` | `{message, ticket}` |
+
+`status` é `open` (aguardando resposta), `in_progress` (em atendimento) ou
+`resolved`. `author` é `user` (padrão) ou `agent`. Um agente autônomo responde
+com `{author:"agent", authorName:"Agente de suporte", content:"..."}`, o que põe o
+ticket em atendimento; uma nova mensagem do usuário reabre um ticket resolvido.
+
 IDs são strings, `position` é número e erros voltam como `{error:"mensagem"}`
 com o status adequado. Excluir um quadro apaga listas e cartões em cascata;
 mover um cartão reordena as duas listas na mesma transação.

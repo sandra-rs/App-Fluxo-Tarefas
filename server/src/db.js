@@ -58,6 +58,28 @@ const MIGRACOES = [
      ('card-api', 'list-fazendo', 'Montar a API de quadros', 'Boards, listas e cartões com movimentação entre listas.', 0),
      ('card-paleta', 'list-pronto', 'Escolher a paleta de cores', '', 0),
      ('card-metricas', 'list-backlog', 'Medir tempo por cartão', '', 0);`,
+  // Atendimento: cada ticket é uma conversa; as mensagens vêm do usuário ou de um agente.
+  `CREATE TABLE ticket (
+     id TEXT PRIMARY KEY,
+     title TEXT NOT NULL,
+     status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('open', 'in_progress', 'resolved')),
+     criado_em TEXT NOT NULL,
+     atualizado_em TEXT NOT NULL
+   );
+   CREATE TABLE ticket_message (
+     id TEXT PRIMARY KEY,
+     ticket_id TEXT NOT NULL REFERENCES ticket(id) ON DELETE CASCADE,
+     author TEXT NOT NULL CHECK (author IN ('user', 'agent')),
+     author_name TEXT NOT NULL DEFAULT '',
+     content TEXT NOT NULL,
+     criado_em TEXT NOT NULL
+   );
+   CREATE INDEX ticket_message_por_ticket ON ticket_message (ticket_id, criado_em);`,
+  `INSERT INTO ticket (id, title, status, criado_em, atualizado_em) VALUES
+     ('ticket-exemplo', 'Como convido alguém para um quadro?', 'in_progress', '2026-11-10T10:00:00.000Z', '2026-11-10T10:02:00.000Z');
+   INSERT INTO ticket_message (id, ticket_id, author, author_name, content, criado_em) VALUES
+     ('msg-exemplo-1', 'ticket-exemplo', 'user', '', 'Como convido alguém para um quadro? Quero que minha equipe veja as tarefas da sprint.', '2026-11-10T10:00:00.000Z'),
+     ('msg-exemplo-2', 'ticket-exemplo', 'agent', 'Suporte Fluxo', 'Olá! Por enquanto os quadros ficam visíveis para todos que acessam o Fluxo, então sua equipe já consegue ver a sprint. O convite por e-mail está no nosso roteiro e aviso aqui assim que ele chegar.', '2026-11-10T10:02:00.000Z');`,
 ];
 
 /** `caminho` = arquivo do banco; `:memory:` nos testes. */

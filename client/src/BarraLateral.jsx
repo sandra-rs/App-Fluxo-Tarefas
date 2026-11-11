@@ -1,16 +1,36 @@
 import { Botao } from "./componentes/Botao.jsx";
 import { Icone } from "./componentes/Icone.jsx";
 
-/** Lateral com a lista de quadros e o atalho para criar um novo. */
-export function BarraLateral({ quadros, quadroId, aoSelecionar, aoNovoQuadro, aoRenomear, aoExcluir }) {
+const SECOES = [
+  { id: "quadros", rotulo: "Quadros", icone: "colunas" },
+  { id: "atendimento", rotulo: "Atendimento", icone: "conversa" },
+];
+
+/** Lateral com o menu de seções, a lista de quadros e o atalho para criar um novo. */
+export function BarraLateral({ secao, aoNavegar, quadros, quadroId, aoSelecionar, aoNovoQuadro, aoRenomear, aoExcluir }) {
   return (
-    <aside className="lateral" aria-label="Quadros">
+    <aside className="lateral" aria-label="Navegação" data-secao={secao}>
       <a className="marca" href="/" aria-label="Fluxo, voltar ao início" style={{ textDecoration: "none" }}>
         <span className="marca-simbolo" aria-hidden="true">
           <Icone nome="colunas" tamanho={18} />
         </span>
         <span className="marca-nome">Fluxo</span>
       </a>
+
+      <nav className="lateral-nav" aria-label="Seções">
+        {SECOES.map((s) => (
+          <button
+            key={s.id}
+            type="button"
+            className="lateral-nav-item"
+            aria-current={secao === s.id ? "page" : undefined}
+            onClick={() => aoNavegar(s.id)}
+          >
+            <Icone nome={s.icone} tamanho={18} />
+            {s.rotulo}
+          </button>
+        ))}
+      </nav>
 
       <div className="lateral-topo">
         <h2 className="lateral-titulo">Quadros</h2>
@@ -23,11 +43,11 @@ export function BarraLateral({ quadros, quadroId, aoSelecionar, aoNovoQuadro, ao
         <ul className="lateral-lista">
           {quadros.map((quadro) => (
             <li key={quadro.id}>
-              <div className="lateral-item" data-ativo={quadro.id === quadroId ? "" : undefined}>
+              <div className="lateral-item" data-ativo={secao === "quadros" && quadro.id === quadroId ? "" : undefined}>
                 <button
                   type="button"
                   className="lateral-escolha"
-                  aria-current={quadro.id === quadroId ? "page" : undefined}
+                  aria-current={secao === "quadros" && quadro.id === quadroId ? "page" : undefined}
                   onClick={() => aoSelecionar(quadro.id)}
                 >
                   {quadro.title}

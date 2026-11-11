@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "./api.js";
 import { BarraLateral } from "./BarraLateral.jsx";
+import { TelaAtendimento } from "./TelaAtendimento.jsx";
 import { TelaQuadro } from "./TelaQuadro.jsx";
 import { Botao } from "./componentes/Botao.jsx";
 import { Campo } from "./componentes/Campo.jsx";
@@ -36,7 +37,11 @@ function EstadoVazio({ titulo, descricao, children }) {
   );
 }
 
+const CAMINHOS = { quadros: "/quadro", atendimento: "/atendimento" };
+const secaoDoEndereco = () => (window.location.pathname.startsWith(CAMINHOS.atendimento) ? "atendimento" : "quadros");
+
 export function App() {
+  const [secao, setSecao] = useState(secaoDoEndereco);
   const [quadros, setQuadros] = useState(null);
   const [quadroId, setQuadroId] = useState(null);
   const [detalhe, setDetalhe] = useState(null);
@@ -86,6 +91,18 @@ export function App() {
       });
     return () => { vivo = false; };
   }, [quadroId, tentativa]);
+
+  // Seção pelo endereço: /quadro ou /atendimento, com voltar/avançar do navegador.
+  useEffect(() => {
+    const aoVoltar = () => setSecao(secaoDoEndereco());
+    window.addEventListener("popstate", aoVoltar);
+    return () => window.removeEventListener("popstate", aoVoltar);
+  }, []);
+
+  const navegar = (nova) => {
+    if (window.location.pathname !== CAMINHOS[nova]) window.history.pushState(null, "", CAMINHOS[nova]);
+    setSecao(nova);
+  };
 
   const recarregar = () => setTentativa((t) => t + 1);
 
@@ -256,14 +273,21 @@ export function App() {
   return (
     <div className="app">
       <BarraLateral
+        secao={secao}
+        aoNavegar={navegar}
         quadros={quadros}
         quadroId={quadroId}
-        aoSelecionar={setQuadroId}
-        aoNovoQuadro={() => setDialogo({ tipo: "novo-quadro" })}
+        aoSelecionar={(id) => { setQuadroId(id); navegar("quadros"); }}
+        aoNovoQuadro={() => { navegar("quadros"); setDialogo({ tipo: "novo-quadro" }); }}
         aoRenomear={(quadro) => setDialogo({ tipo: "renomear-quadro", quadro })}
         aoExcluir={(quadro) => setDialogo({ tipo: "excluir-quadro", quadro })}
       />
 
+      {secao === "atendimento" ? (
+        <main className="canvas canvas-atendimento">
+          <TelaAtendimento />
+        </main>
+      ) : (
       <main className="canvas">
         {erro ? (
           <div className="aviso" role="alert">
@@ -277,6 +301,7 @@ export function App() {
 
         {conteudo()}
       </main>
+      )}
 
       {dialogo?.tipo === "novo-quadro" ? (
         <Dialogo aberto titulo="Novo quadro" descricao="Dê um nome para o trabalho que este quadro vai acompanhar." aoFechar={() => setDialogo(null)}>
